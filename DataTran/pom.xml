@@ -92,7 +92,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
-            <version>1.2.8-SNAPSHOT</version>
+            <version>1.2.8</version>
         </dependency>
 
         <dependency>
@@ -266,7 +266,7 @@
         </dependency>
     </dependencies>
 
-    <repositories>
+    <!--<repositories>
         <repository>
             <id>jboss</id>
             <name>JBoss Repository</name>
@@ -275,5 +275,5 @@
                 <enabled>true</enabled>
             </releases>
         </repository>
-    </repositories>
+    </repositories>-->
 </project>
