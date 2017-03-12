@@ -141,3 +141,5 @@ Caused by: com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException: Unknown da
 2016-06-02 14:41:38 [com.alibaba.druid.pool.DruidDataSource:1385] - {dataSource-1} closed
 2016-06-02 14:43:01 [com.alibaba.druid.pool.DruidDataSource:669] - {dataSource-1} inited
 2016-06-02 14:43:01 [com.alibaba.druid.pool.DruidDataSource:1385] - {dataSource-1} closed
+
+test connection
