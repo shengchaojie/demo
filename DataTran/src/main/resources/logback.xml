@@ -74,6 +74,11 @@
         <appender-ref ref="kafkaAppender"/>
     </logger>
 
+    <logger name="org.apache.http" level="INFO" addtivity="false">
+        <appender-ref ref="allFileAppender"/>
+        <appender-ref ref="consoleAppender"/>
+    </logger>
+
     <!--<logger name="org.springframework.transaction" level="INFO" addtivity="false">
         <appender-ref ref="consoleAppender"/>
     </logger>-->
