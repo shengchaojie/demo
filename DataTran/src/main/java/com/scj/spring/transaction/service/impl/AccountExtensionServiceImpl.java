@@ -25,7 +25,7 @@ public class AccountExtensionServiceImpl implements AccountService,ApplicationCo
     private AccountEntityMapper accountEntityMapper;
 
 
-    @Transactional(propagation =Propagation.REQUIRED)
+    @Transactional()
     public void addUser(String username, String password) {
         AccountEntity accountEntity =new AccountEntity();
         accountEntity.setLoginName(username);
@@ -36,16 +36,18 @@ public class AccountExtensionServiceImpl implements AccountService,ApplicationCo
         addUser1(username,password);
 
 
-        throw  new RuntimeException("123");
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional()
     public void addUser1(String username, String password) {
         AccountEntity accountEntity =new AccountEntity();
         accountEntity.setLoginName(username+"test");
         accountEntity.setPassword(password);
 
         accountEntityMapper.insertSelective(accountEntity);
+
+        throw  new RuntimeException("123");
+
     }
 
     @Override

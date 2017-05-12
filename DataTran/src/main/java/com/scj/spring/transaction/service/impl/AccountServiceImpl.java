@@ -31,11 +31,11 @@ public class AccountServiceImpl implements AccountService{
 
         addUser1(username,password);
 
-        throw  new RuntimeException("123");
+        //throw  new RuntimeException("123");
     }
 
-    @Transactional(propagation = Propagation.NESTED)
-    public void addUser1(String username, String password) {
+    @Transactional
+    public synchronized void  addUser1(String username, String password) {
         AccountEntity accountEntity =new AccountEntity();
         accountEntity.setLoginName(username+"test");
         accountEntity.setPassword(password);
