@@ -2,23 +2,26 @@ package com.scj.neteasemusic;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Charsets;
 import com.scj.util.DateUtil;
 import com.scj.util.EncodeDecodeUtil;
 import com.scj.util.FileUtil;
 import jxl.Workbook;
-import jxl.WorkbookSettings;
 import jxl.write.Label;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
 import jxl.write.biff.RowsExceededException;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.CharSet;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -26,12 +29,14 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.math.BigInteger;
 import java.net.URLEncoder;
@@ -63,6 +68,8 @@ public class NetEaseMusicAPI {
     };
     private final static int METHOD_GET =0;
     private final static int METHOD_POST=1;
+    private final static int METHOD_LOGIN=2;
+
     private final static String CACHE_PATH="f:/wymusic/cookie.json";
 
     private final static Logger LOGGER = LoggerFactory.getLogger(NetEaseMusicAPI.class);
@@ -114,20 +121,21 @@ public class NetEaseMusicAPI {
     }
 
     //based on [darknessomi/musicbox](https://github.com/darknessomi/musicbox)
-    private  String encryptedRequest(String text) {
+    public  List<NameValuePair> encryptedRequest(String text) {
         HashMap<String,String> result =new HashMap<>();
         String secKey = createSecretKey(16);
         String encText = aesEncrypt(aesEncrypt(text, nonce), secKey);
         String encSecKey = rsaEncrypt(secKey, pubKey, modulus);
-        System.out.println("text:"+text);
-        System.out.println("encText:"+encText);
-        System.out.println("encSecKey:"+encSecKey);
-        try {
-            return "params=" + URLEncoder.encode(encText, "UTF-8") + "&encSecKey=" + URLEncoder.encode(encSecKey, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            //ignore
-            return null;
-        }
+        //System.out.println("encText:"+encText);
+        //System.out.println("text:"+text);
+        //System.out.println("encSecKey:"+encSecKey);
+
+        List<NameValuePair> params =new ArrayList<>();
+        params.add(new BasicNameValuePair("params",encText));
+        params.add(new BasicNameValuePair("encSecKey",encSecKey));
+        return params;
+        //return "params=" + URLEncoder.encode(encText, "UTF-8") + "&encSecKey=" + URLEncoder.encode(encSecKey, "UTF-8");
+
     }
 
     //based on [darknessomi/musicbox](https://github.com/darknessomi/musicbox)
@@ -136,7 +144,7 @@ public class NetEaseMusicAPI {
             IvParameterSpec iv = new IvParameterSpec("0102030405060708".getBytes("UTF-8"));
             SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
 
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
             cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
 
             byte[] encrypted = cipher.doFinal(text.getBytes());
@@ -149,27 +157,34 @@ public class NetEaseMusicAPI {
     }
 
     //based on [darknessomi/musicbox](https://github.com/darknessomi/musicbox)
-    private  String rsaEncrypt(String text, String pubKey, String modulus) {
+    private  String rsaEncrypt(String text, String pubKey, String modulus){
         text = new StringBuilder(text).reverse().toString();
-        BigInteger rs = new BigInteger(String.format("%x", new BigInteger(1, text.getBytes())), 16)
-                .modPow(new BigInteger(pubKey, 16), new BigInteger(modulus, 16));
-        String r = rs.toString(16);
-        if (r.length() >= 256) {
-            return r.substring(r.length() - 256, r.length());
-        } else {
-            while (r.length() < 256) {
-                r = 0 + r;
-            }
-            return r;
+        BigInteger valueInt = hexToBigInteger(stringToHex(text));
+        //BigInteger pubkey = hexToBigInteger("010001");
+        //BigInteger modulus = hexToBigInteger("00e0b509f6259df8642dbc35662901477df22677ec152b5ff68ace615bb7b725152b3ab17a876aea8a5aa76d2e417629ec4ee341f56135fccf695280104e0312ecbda92557c93870114af6c9d05c4f7f0c3685b7a46bee255932575cce10b424d813cfe4875d3e82047b97ddef52741d546b8e289dc6935b3ece0462db0a22b8e7");
+        return valueInt.modPow(hexToBigInteger(pubKey), hexToBigInteger(modulus)).toString(16);
+    }
+
+    private BigInteger hexToBigInteger(String hex) {
+        return new BigInteger(hex, 16);
+    }
+
+    private String stringToHex(String text)   {
+
+        try {
+            return DatatypeConverter.printHexBinary(text.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+        return "";
         }
-    }
+        }
 
-    //based on [darknessomi/musicbox](https://github.com/darknessomi/musicbox)
-    private  String createSecretKey(int i) {
+//based on [darknessomi/musicbox](https://github.com/darknessomi/musicbox)
+private  String createSecretKey(int i) {
         return RandomStringUtils.random(i, "0123456789abcde");
-    }
+        }
 
-    public String sendHttpRequest(int method,String action,String data) {
+    public String sendHttpRequest(int method, String action, String data, List<NameValuePair> params) {
         String response =null;
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
@@ -214,16 +229,35 @@ public class NetEaseMusicAPI {
 
             }
 
-        }else{
-            return null;
+        }else if(method ==METHOD_LOGIN){
+            HttpPost post =new HttpPost(action);
+            for(String[] header:headers){
+                post.addHeader(header[0],header[1]);
+            }
+            post.setEntity(new UrlEncodedFormEntity(params, Charsets.UTF_8));
+            try {
+                response = httpClient.execute(post, new ResponseHandler<String>() {
+                    @Override
+                    public String handleResponse(HttpResponse response) {
+                        try {
+                            return FileUtil.getStringFromInputStream(response.getEntity().getContent());
+                        }catch (IOException ex) {
+                            return null;
+                        }
+                    }
+                }, httpClientContext);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+
         return response;
     }
 
     public void login(){
         String passwordEncode = EncodeDecodeUtil.encodeWithMD5(password);
         String text ="{\"username\": \""+username+"\", \"rememberLogin\": \"true\", \"password\": \""+passwordEncode+"\"}";
-        String response =sendHttpRequest(METHOD_POST,"https://music.163.com/weapi/login?csrf_token=",encryptedRequest(text));
+        String response =sendHttpRequest(METHOD_POST,"https://music.163.com/weapi/login?csrf_token=",null,encryptedRequest(text));
 
         LOGGER.debug("method:login,response:{}",response);
         JSONObject jsonObject = JSON.parseObject(response);
@@ -259,7 +293,7 @@ public class NetEaseMusicAPI {
             return;
         }*/
         String action = MessageFormat.format("http://music.163.com/api/user/playlist/?offset={0}&limit={1}&uid={2}","0","100","30664411");
-        String response =sendHttpRequest(METHOD_GET,action,null);
+        String response =sendHttpRequest(METHOD_GET,action,null,null);
         JSONObject object = JSON.parseObject(response);
         List<JSONObject> playListObject =(List<JSONObject>)object.get("playlist");
         for (JSONObject jsonObject:playListObject){
@@ -295,7 +329,7 @@ public class NetEaseMusicAPI {
 
     private void getPlayListDetail(PlayList playList){
         String action =MessageFormat.format("http://music.163.com/api/playlist/detail?id={0}",playList.getId());
-        String response =sendHttpRequest(METHOD_GET,action,null);
+        String response =sendHttpRequest(METHOD_GET,action,null,null);
         JSONObject object = JSON.parseObject(response);
         Map result = (Map) object.get("result");
         List<JSONObject> songObjects = (List<JSONObject>) result.get("tracks");
@@ -315,7 +349,7 @@ public class NetEaseMusicAPI {
 
     public static void main(String[] args) {
         NetEaseMusicAPI api = new NetEaseMusicAPI("shengchaojie@163.com","Scj@1992");
-        //api.login();
+        api.login();
         api.getUserPlayList();
         api.exportPlayListsAsExcel(api.getPlayList());
         //api.getPlayListDetail("436603882");//工作的时候
