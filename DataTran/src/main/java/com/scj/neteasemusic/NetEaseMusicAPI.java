@@ -348,7 +348,7 @@ private  String createSecretKey(int i) {
     }
 
     public static void main(String[] args) {
-        NetEaseMusicAPI api = new NetEaseMusicAPI("shengchaojie@163.com","Scj@1992");
+        NetEaseMusicAPI api = new NetEaseMusicAPI("13388611621","Scj@1992");
         api.login();
         api.getUserPlayList();
         api.exportPlayListsAsExcel(api.getPlayList());

@@ -68,4 +68,9 @@
 
     <tx:annotation-driven transaction-manager="txManagerCommon"/>
 
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource">
+            <ref bean="dataSourceCommon"/>
+        </property>
+    </bean>
 </beans>
