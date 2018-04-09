@@ -27,7 +27,7 @@ public class TestMain {
     public static void main(String[] args) throws IOException, InvalidFormatException {
         TestMain testMain = new TestMain();
         //得到主项目
-        List<ProjectEntity> projectEntityList  = testMain.readExcel("C:\\Users\\10064749\\Desktop\\项目信息.xlsx");
+        List<ProjectEntity> projectEntityList  = testMain.readExcel("C:\\Users\\10064749\\Desktop\\项目信息2.xlsx");
         for(ProjectEntity project : projectEntityList){
             //创建流程和主项目
             project.setProjectName(project.getProjectName()+"(主)");
