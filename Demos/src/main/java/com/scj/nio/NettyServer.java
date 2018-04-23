@@ -23,7 +23,7 @@ import java.nio.charset.Charset;
 public class NettyServer {
 
     public static void main(String[] args) throws InterruptedException {
-        //两个线程池，对应IO线程池，业务线程池
+        //两个线程池
         NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup();
         NioEventLoopGroup childEventLoopGroup = new NioEventLoopGroup();
         ServerBootstrap bootstrap = new ServerBootstrap();
