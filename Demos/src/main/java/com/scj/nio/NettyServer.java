@@ -7,6 +7,7 @@ import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.CharsetUtil;
@@ -31,6 +32,15 @@ public class NettyServer {
                 .group(eventLoopGroup,childEventLoopGroup)
                 .channel(NioServerSocketChannel.class)
                 .localAddress(new InetSocketAddress(9999))
+                .handler(new ChannelInitializer<ServerSocketChannel>() {
+                    @Override
+                    protected void initChannel(ServerSocketChannel socketChannel) throws Exception {
+                        socketChannel.pipeline()
+                                .addLast(new TestInboundChannelHandler("server  in "))
+                                .addLast(new TestOutboundChannelHandler("server  out "));
+
+                    }
+                })
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
@@ -38,8 +48,8 @@ public class NettyServer {
                                 .addLast(new TestInboundChannelHandler("first in "))
                                 .addLast(new TestInboundChannelHandler("second in "))
                                 .addLast(new EchoChannelHandler())
-                                .addLast(new TestOutboundChannelHandler("first out"))
-                                .addLast(new TestOutboundChannelHandler("second out"));
+                                .addLast(new TestOutboundChannelHandler("first out "))
+                                .addLast(new TestOutboundChannelHandler("second out "));
 
                     }
                 });
@@ -143,6 +153,7 @@ public class NettyServer {
         public void bind(ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise) throws Exception {
             //super.bind(ctx,localAddress,promise);
             System.out.println(name+ "bind");
+            ctx.bind(localAddress);
         }
 
         @Override
@@ -153,13 +164,13 @@ public class NettyServer {
 
         @Override
         public void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
-            //super.disconnect(ctx,promise);
+            super.disconnect(ctx,promise);
             System.out.println(name+"disconnect");
         }
 
         @Override
         public void close(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
-            //super.close(ctx,promise);
+            super.close(ctx,promise);
             System.out.println(name+"close");
         }
 
