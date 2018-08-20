@@ -21,6 +21,18 @@ public class Test1 {
         SuperClass clz = new SubClass();
         //你觉得这里输出什么?
         System.out.println(clz.name);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(2000L);
+                    System.out.println("scj");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }));
     }
 
 
