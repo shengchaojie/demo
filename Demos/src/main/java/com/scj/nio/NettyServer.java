@@ -57,7 +57,6 @@ public class NettyServer {
         ChannelFuture channelFuture = bootstrap.bind().sync();
         //等到serversocketchannel close在退出
         channelFuture.channel().closeFuture().sync();
-
     }
 
     static class TestInboundChannelHandler extends ChannelInboundHandlerAdapter{
@@ -82,6 +81,7 @@ public class NettyServer {
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
             System.out.println(name+"channelActive not spread");
+            ctx.channel().writeAndFlush(Unpooled.wrappedBuffer("hello".getBytes()));
         }
 
         @Override
@@ -151,9 +151,8 @@ public class NettyServer {
 
         @Override
         public void bind(ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise) throws Exception {
-            //super.bind(ctx,localAddress,promise);
+            super.bind(ctx,localAddress,promise);
             System.out.println(name+ "bind");
-            ctx.bind(localAddress);
         }
 
         @Override
